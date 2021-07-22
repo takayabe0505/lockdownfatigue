@@ -1,4 +1,4 @@
-package mobility;
+package mobility_multithread;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -20,9 +20,9 @@ import jp.ac.ut.csis.pflow.geom.Mesh;
 
 public class homelocs {
 
-//	protected static final SimpleDateFormat DOW      = new SimpleDateFormat("u");//change time format
-//	protected static final SimpleDateFormat DATE     = new SimpleDateFormat("yyyyMMdd");//change time format
-//	protected static final SimpleDateFormat DATETIME = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+	//	protected static final SimpleDateFormat DOW      = new SimpleDateFormat("u");//change time format
+	//	protected static final SimpleDateFormat DATE     = new SimpleDateFormat("yyyyMMdd");//change time format
+	//	protected static final SimpleDateFormat DATETIME = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
 
 	public static HashMap<String, LonLat> getHomes(
 			String startdate, 
@@ -37,9 +37,12 @@ public class homelocs {
 		while(date.before(end_date_date)){
 			String date_str = new SimpleDateFormat("yyyyMMdd").format(date);
 			Date next_date = utils.nextday_date(date);
-			File gps1 = new File(gpspath+date_str+".tsv");
-			if((gps1.exists()) && (gps1.length()>0) ) {
-				getlogs(gps1, date_str, id_datetime_ll);
+			String dow = new SimpleDateFormat("u").format(date);
+			if(Integer.valueOf(dow)<5) {
+				File gps1 = new File(gpspath+date_str+".tsv");
+				if((gps1.exists()) && (gps1.length()>0) ) {
+					getlogs(gps1, date_str, id_datetime_ll);
+				}
 			}
 			System.out.println("--- done "+date_str+", ID list size: "+String.valueOf(id_datetime_ll.size()));
 			date = next_date;
@@ -217,7 +220,7 @@ public class homelocs {
 		LonLat avg = new LonLat(lon,lat);
 		return avg;
 	}
-	
+
 	public static HashMap<String, String> getidcode(File in) throws IOException{
 		BufferedReader br = new BufferedReader(new FileReader(in));
 		HashMap<String, String> id_code = new HashMap<String, String>();
@@ -231,7 +234,7 @@ public class homelocs {
 		br.close();
 		return id_code;
 	}
-	
+
 	public static HashMap<String, LonLat> getidll(File in) throws IOException{
 		BufferedReader br = new BufferedReader(new FileReader(in));
 		HashMap<String, LonLat> id_ll = new HashMap<String, LonLat>();
