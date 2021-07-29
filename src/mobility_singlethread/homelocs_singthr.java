@@ -1,4 +1,4 @@
-package mobility_multithread;
+package mobility_singlethread;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -17,44 +17,41 @@ import jp.ac.ut.csis.pflow.geom.LonLat;
 import jp.ac.ut.csis.pflow.geom.Mesh;
 
 
-public class homelocs {
+public class homelocs_singthr {
 
 	//	protected static final SimpleDateFormat DOW      = new SimpleDateFormat("u");//change time format
 	//	protected static final SimpleDateFormat DATE     = new SimpleDateFormat("yyyyMMdd");//change time format
 	//	protected static final SimpleDateFormat DATETIME = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
 
-	public static HashMap<String, LonLat> getHomes(
-			String startdate, 
-			String enddate,
-			String gpspath,
-			File idhome
-			) throws NumberFormatException, IOException, ParseException {
-		HashMap<String, HashMap<String, LonLat>> id_datetime_ll = new HashMap<String, HashMap<String, LonLat>>();
-		Date start_date_date = new SimpleDateFormat("yyyyMMdd").parse(startdate);
-		Date end_date_date   = new SimpleDateFormat("yyyyMMdd").parse(enddate);
-		Date date = start_date_date;
-		while(date.before(end_date_date)){
-			String date_str = new SimpleDateFormat("yyyyMMdd").format(date);
-			Date next_date = utils.nextday_date(date);
-			String dow = new SimpleDateFormat("u").format(date);
-			if(Integer.valueOf(dow)<5) {
-				File gps1 = new File(gpspath+date_str+".tsv");
-				if((gps1.exists()) && (gps1.length()>0) ) {
-					getlogs(gps1, date_str, id_datetime_ll);
-				}
-			}
-			System.out.println("--- done "+date_str+", ID list size: "+String.valueOf(id_datetime_ll.size()));
-			date = next_date;
-		}
-		HashMap<String, LonLat> id_home = gethomelocs(id_datetime_ll, idhome);
-		return id_home;
-	}
+//	public static HashMap<String, LonLat> getHomes(
+//			String startdate, 
+//			String enddate,
+//			String gpspath,
+//			File idhome
+//			) throws NumberFormatException, IOException, ParseException {
+//		HashMap<String, HashMap<String, LonLat>> id_datetime_ll = new HashMap<String, HashMap<String, LonLat>>();
+//		Date start_date_date = new SimpleDateFormat("yyyyMMdd").parse(startdate);
+//		Date end_date_date   = new SimpleDateFormat("yyyyMMdd").parse(enddate);
+//		Date date = start_date_date;
+//		while(date.before(end_date_date)){
+//			String date_str = new SimpleDateFormat("yyyyMMdd").format(date);
+//			Date next_date = utils.nextday_date(date);
+//			File gps1 = new File(gpspath+date_str+".tsv");
+//			if((gps1.exists()) && (gps1.length()>0) ) {
+//				getlogs(gps1, date_str, id_datetime_ll);
+//				HashMap<String, LonLat> id_home = gethomelocs(id_datetime_ll, idhome);
+//			}
+//			System.out.println("--- done "+date_str+", ID list size: "+String.valueOf(id_datetime_ll.size()));
+//			date = next_date;
+//		}
+//		return id_home;
+//	}
 
-	public static void getlogs(
+	public static HashMap<String, HashMap<String, LonLat>> getmorninglogs(
 			File in,
-			String date,
-			HashMap<String, HashMap<String, LonLat>> id_datetime_ll
+			String date
 			) throws NumberFormatException, IOException, ParseException{
+		HashMap<String, HashMap<String, LonLat>> id_datetime_ll = new HashMap<String, HashMap<String, LonLat>>();
 		BufferedReader br1 = new BufferedReader(new FileReader(in));
 		String line1 = null;
 		while((line1=br1.readLine())!=null){
@@ -71,11 +68,9 @@ public class homelocs {
 							Date currentDate = new Date (Long.parseLong(unixtime)*((long)1000)); // UTC time
 							new SimpleDateFormat("yyyyMMdd HH:mm:ss").setTimeZone(TimeZone.getTimeZone("GMT+9"));
 							String datetime = new SimpleDateFormat("yyyyMMdd HH:mm:ss").format(currentDate);
-							String dow = new SimpleDateFormat("u").format(currentDate);
 							String time = datetime.split(" ")[1];
 							Integer hour = Integer.valueOf(time.split(":")[0]);
-							if(Integer.valueOf(dow)<5) {
-								if((hour<=8)|(hour>=21)) {
+								if(hour<=8) {
 									if(id_datetime_ll.containsKey(id_br1)) {
 										id_datetime_ll.get(id_br1).put(datetime, p);
 									}
@@ -83,7 +78,7 @@ public class homelocs {
 										HashMap<String, LonLat> tmp = new HashMap<String, LonLat>();
 										tmp.put(datetime, p);
 										id_datetime_ll.put(id_br1, tmp);
-									}}}}}}}
+									}}}}}}
 			}
 			catch (ArrayIndexOutOfBoundsException  e){
 				System.out.println("OUT OF BOUNDS EXCEPTION ----");
@@ -97,6 +92,7 @@ public class homelocs {
 			}
 		}
 		br1.close();
+		return id_datetime_ll;
 	}
 
 
@@ -194,12 +190,11 @@ public class homelocs {
 				Double lat = home.getLat();
 				String meshcode = new Mesh(6,lon,lat).getCode();
 //				String jcode = utils.AreaOverlap(home, g);
-				String jcode = "empty";
 				ids.put(id, new LonLat(lon,lat));
 				bw.write(id+","+
 						String.valueOf(ids.get(id).getLon())+","+
 						String.valueOf(ids.get(id).getLat())+","+
-						meshcode+","+jcode); 
+						meshcode); 
 				bw.newLine();
 			}
 		}
